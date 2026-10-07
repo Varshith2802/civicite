@@ -1,0 +1,25 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test-and-eval:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Evaluation gates (extractive baseline)
+        run: |
+          civicite index
+          civicite eval --mode extractive --out eval_results \
+            --min-recall 0.95 --min-accuracy 0.80 --min-faithfulness 1.0 --min-abstain-f1 0.80
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results-${{ matrix.python-version }}
+          path: eval_results/

@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:#fafafa}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.__SITE_MODE__ = "pages";</script>
+<title>CiviCite</title>
+<meta name="description" content="Ask about Swedish public services and get a short, verified answer with the source of every sentence.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap">
+<style>
+/* Layout: a public-service help desk. A deep blue band holds the question; answers and topic tiles sit on a light page below.
+   Blue = actions, yellow = calculated or quoted, green = verified. */
+:root {
+  --page: #f3f5f8;
+  --band: #0b3a6e;
+  --band-ink: #ffffff;
+  --band-muted: #b9cde6;
+  --card: #ffffff;
+  --ink: #10233f;
+  --muted: #5b6b81;
+  --line: #e2e8f0;
+  --blue: #0a5ea8;
+  --blue-soft: #eaf2fb;
+  --yellow: #f7c600;
+  --yellow-soft: #fff5c7;
+  --mark: #ffeea0;
+  --ok: #157a48;
+  --ok-soft: #e4f4ec;
+  --warn: #a8640a;
+  --bad: #b42318;
+  --shadow: 0 1px 2px rgba(16, 35, 63, .06), 0 10px 30px rgba(16, 35, 63, .08);
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0a1220; --band: #0d2547; --band-ink: #f1f5fb; --band-muted: #9fb7d6; --card: #111c2f; --ink: #e8eef7; --muted: #9eb0c7;
+    --line: #24344d; --blue: #6ab4ff; --blue-soft: #15304f; --yellow: #ffd64d; --yellow-soft: #3a3108; --mark: #57490a;
+    --ok: #52cb8f; --ok-soft: #10301f; --warn: #f2b453; --bad: #ff8278; --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0a1220; --band: #0d2547; --band-ink: #f1f5fb; --band-muted: #9fb7d6; --card: #111c2f; --ink: #e8eef7; --muted: #9eb0c7;
+  --line: #24344d; --blue: #6ab4ff; --blue-soft: #15304f; --yellow: #ffd64d; --yellow-soft: #3a3108; --mark: #57490a;
+  --ok: #52cb8f; --ok-soft: #10301f; --warn: #f2b453; --bad: #ff8278; --shadow: 0 1px 2px rgba(0,0,0,.35), 0 10px 30px rgba(0,0,0,.3); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font: 17px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+button, textarea { font: inherit; color: inherit; }
+a { color: var(--blue); }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-radius: 8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 880px; margin: 0 auto; padding-inline: 20px; }
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } }
+
+/* band */
+.band { background: var(--band); color: var(--band-ink); padding-block: 18px 34px; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font: 700 21px/1 var(--serif); color: var(--band-ink); text-decoration: none; }
+.logo { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; background: var(--band-ink); color: var(--band);
+  font: 700 15px/1 var(--serif); letter-spacing: -.02em; }
+.logo i { font-style: normal; color: var(--yellow); }
+.top a.code { color: var(--band-muted); font-size: 15px; font-weight: 600; text-decoration: none; }
+.top a.code:hover { color: var(--band-ink); }
+.band h1 { margin: 38px 0 0; font: 600 clamp(30px, 6vw, 46px)/1.1 var(--serif); letter-spacing: -.015em; text-wrap: balance; }
+.band p.lede { margin: 10px 0 0; color: var(--band-muted); font-size: 18px; }
+.ask { margin-top: 24px; display: flex; align-items: center; gap: 10px; background: var(--card); color: var(--ink); border-radius: 16px;
+  padding: 8px 8px 8px 18px; box-shadow: 0 12px 34px rgba(0, 0, 0, .22); }
+.ask svg.search { flex: none; width: 22px; height: 22px; color: var(--muted); }
+.ask textarea { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; resize: none; font-size: 18px; line-height: 1.45; padding: 10px 0; max-height: 150px; }
+.ask textarea::placeholder { color: var(--muted); }
+.go { flex: none; border: 0; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 700; font-size: 16px; padding: 12px 20px; cursor: pointer; }
+.go:hover { filter: brightness(1.08); }
+@media (max-width: 520px) { .go { padding: 12px 14px; } .go span { display: none; } }
+.go svg { width: 20px; height: 20px; vertical-align: -4px; }
+
+/* answer */
+.result { margin-top: -18px; position: relative; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 22px 0; flex-wrap: wrap; }
+.card-head .q { font-size: 15px; color: var(--muted); min-width: 0; }
+.card-head .q b { color: var(--ink); font-weight: 600; }
+.badge { appearance: none; border: 0; display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 12px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.badge svg { width: 16px; height: 16px; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.badge.warn { background: var(--yellow-soft); color: var(--warn); }
+.badge.bad { background: var(--yellow-soft); color: var(--bad); }
+.body { padding: 14px 22px 20px; display: grid; gap: 14px; }
+@media (max-width: 520px) { .card-head, .body { padding-inline: 16px; } }
+.token { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .04em; background: var(--blue-soft); color: var(--blue); border-radius: 6px; padding: 1px 6px; }
+.privacy { display: flex; gap: 10px; align-items: center; background: var(--blue-soft); border-radius: 12px; padding: 10px 14px; font-size: 15px; }
+.privacy svg { flex: none; width: 20px; height: 20px; color: var(--blue); }
+.answer { margin: 0; font: 400 21px/1.6 var(--serif); }
+.ref { appearance: none; border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 6px; min-width: 22px; height: 22px; padding: 0 6px;
+  font: 700 13px/22px var(--sans); cursor: pointer; vertical-align: 3px; margin-left: 3px; }
+.ref:hover, .ref[aria-pressed="true"] { background: var(--blue); color: #fff; }
+.calc { display: inline-block; vertical-align: 3px; background: var(--yellow-soft); color: var(--ink); border: 1px solid var(--yellow); border-radius: 999px;
+  padding: 0 9px; font: 600 12.5px/20px var(--sans); margin-left: 3px; cursor: help; }
+.checks { margin: 0; padding: 12px 14px; list-style: none; display: grid; gap: 8px; border-radius: 12px; background: var(--page); font-size: 15px; }
+.checks li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; }
+.checks svg { width: 18px; height: 18px; margin-top: 3px; }
+.checks .y { color: var(--ok); } .checks .n { color: var(--bad); } .checks .m { color: var(--muted); }
+.checks small { display: block; color: var(--muted); font-size: 13.5px; }
+
+.srcrow { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.src { appearance: none; text-align: left; border: 1.5px solid var(--line); background: var(--card); border-radius: 14px; padding: 10px 12px; cursor: pointer;
+  display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start; }
+.src:hover { border-color: var(--blue); }
+.src[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+.num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--blue); color: #fff; font-weight: 700; font-size: 13px; }
+.src b { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.src small { display: block; color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.quote { border-left: 3px solid var(--yellow); padding: 4px 0 4px 16px; font: 17px/1.6 var(--serif); }
+.quote mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
+.quote .meta { margin-top: 8px; font: 14px/1.4 var(--sans); color: var(--muted); }
+
+.none { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding: 20px 22px; }
+.none .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--yellow-soft); color: var(--warn); display: grid; place-items: center; }
+.none .ic svg { width: 24px; height: 24px; }
+.none h2 { margin: 0; font: 600 22px/1.25 var(--serif); }
+.none p { margin: 6px 0 0; color: var(--muted); }
+
+/* topics */
+.topics { margin-top: 34px; }
+.topics h2 { margin: 0 0 12px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.tile { appearance: none; text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 16px; padding: 14px 16px; cursor: pointer;
+  display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 14px; align-items: center; transition: transform .12s, box-shadow .12s, border-color .12s; }
+.tile:hover { border-color: var(--blue); box-shadow: var(--shadow); transform: translateY(-1px); }
+.tile[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); }
+.tile .ti { width: 42px; height: 42px; border-radius: 12px; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; }
+.tile .ti svg { width: 22px; height: 22px; }
+.tile b { display: block; font-size: 16.5px; }
+.tile span.qq { display: block; color: var(--muted); font-size: 14.5px; line-height: 1.35; margin-top: 2px; }
+
+footer { margin-block: 40px 30px; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .tile:hover { transform: none; } }
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="#" id="home"><span class="logo" aria-hidden="true"><i>[</i>1<i>]</i></span>CiviCite</a>
+      <a class="code" id="src-link" href="https://github.com/Varshith2802/civicite" target="_blank" rel="noopener" hidden>Code</a>
+    </div>
+    <h1>What do you need help with?</h1>
+    <p class="lede">Ask about moving, taxes, parental leave, sick pay, studies or your ID.</p>
+    <form class="ask" id="ask-form">
+      <svg class="search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr" for="q">Your question</label>
+      <textarea id="q" rows="1" placeholder="Type your question" autocomplete="off"></textarea>
+      <button class="go" type="submit"><span>Ask </span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="result" id="result" aria-live="polite"></section>
+  <section class="topics" aria-labelledby="topics-h">
+    <h2 id="topics-h">Popular questions</h2>
+    <div class="grid" id="tiles"></div>
+  </section>
+  <footer>
+    <span>Demo: answers come from 12 test texts written for this project, not official advice.</span>
+    <span>Built by Tirumala Varshith Sagar Nallaigari · <a href="https://github.com/Varshith2802" target="_blank" rel="noopener">github.com/Varshith2802</a></span>
+  </footer>
+</main>
+
+<script type="application/json" id="cc-data">{"chunks": [{"chunk_id": "arbetsformedlingen-job-seeker#0", "doc_id": "arbetsformedlingen-job-seeker", "title": "Registering as a job seeker and unemployment insurance", "agency": "Arbetsf\u00f6rmedlingen (Swedish Public Employment Service)", "url": "https://arbetsformedlingen.se/", "section": "Register on your first day of unemployment", "text": "If you become unemployed, register as a job seeker with Arbetsf\u00f6rmedlingen on your first day of unemployment. Registration is required to receive unemployment benefit."}, {"chunk_id": "arbetsformedlingen-job-seeker#1", "doc_id": "arbetsformedlingen-job-seeker", "title": "Registering as a job seeker and unemployment insurance", "agency": "Arbetsf\u00f6rmedlingen (Swedish Public Employment Service)", "url": "https://arbetsformedlingen.se/", "section": "Unemployment insurance fund", "text": "Unemployment benefit is paid by an unemployment insurance fund (a-kassa), not by Arbetsf\u00f6rmedlingen. You apply for the benefit to your a-kassa after registering with Arbetsf\u00f6rmedlingen."}, {"chunk_id": "arbetsformedlingen-job-seeker#2", "doc_id": "arbetsformedlingen-job-seeker", "title": "Registering as a job seeker and unemployment insurance", "agency": "Arbetsf\u00f6rmedlingen (Swedish Public Employment Service)", "url": "https://arbetsformedlingen.se/", "section": "Activity reports", "text": "While registered, you report your job search activities to Arbetsf\u00f6rmedlingen every month in an activity report (aktivitetsrapport)."}, {"chunk_id": "csn-student-aid#0", "doc_id": "csn-student-aid", "title": "Student aid (studiemedel)", "agency": "CSN (Swedish Board of Student Finance)", "url": "https://www.csn.se/", "section": "What it consists of", "text": "Student aid (studiemedel) from CSN consists of a grant (bidrag), which you do not pay back, and a loan (l\u00e5n), which you repay. You can choose to take only the grant."}, {"chunk_id": "csn-student-aid#1", "doc_id": "csn-student-aid", "title": "Student aid (studiemedel)", "agency": "CSN (Swedish Board of Student Finance)", "url": "https://www.csn.se/", "section": "Requirements", "text": "You must be studying at least half-time (50 percent) in a programme that qualifies for student aid. To keep receiving student aid, you need to pass your studies at a sufficient pace; CSN checks your study results before granting aid for a new period."}, {"chunk_id": "csn-student-aid#2", "doc_id": "csn-student-aid", "title": "Student aid (studiemedel)", "agency": "CSN (Swedish Board of Student Finance)", "url": "https://www.csn.se/", "section": "Applying", "text": "You apply to CSN for each study period, normally in CSN's e-service with an e-identification. It is a good idea to apply well before the period starts so that the money is paid on time."}, {"chunk_id": "e-identification#0", "doc_id": "e-identification", "title": "E-identification (e-legitimation) for public e-services", "agency": "DIGG (Agency for Digital Government)", "url": "https://www.digg.se/", "section": "What it is", "text": "An e-identification lets you prove your identity online, for example when you log in to the e-services of Skatteverket, F\u00f6rs\u00e4kringskassan, CSN or your region's healthcare services."}, {"chunk_id": "e-identification#1", "doc_id": "e-identification", "title": "E-identification (e-legitimation) for public e-services", "agency": "DIGG (Agency for Digital Government)", "url": "https://www.digg.se/", "section": "Common options", "text": "The most widely used e-identification in Sweden is BankID, which is issued by banks. Freja eID is another approved e-identification that can be ordered through an app. To get an e-identification you normally need a Swedish personal identity number."}, {"chunk_id": "e-identification#2", "doc_id": "e-identification", "title": "E-identification (e-legitimation) for public e-services", "agency": "DIGG (Agency for Digital Government)", "url": "https://www.digg.se/", "section": "Security advice", "text": "Never log in with your e-identification because someone called you and asked you to. Public agencies and banks never ask you to identify yourself with BankID during a phone call that they initiated."}, {"chunk_id": "forsakringskassan-parental-benefit#0", "doc_id": "forsakringskassan-parental-benefit", "title": "Parental benefit (f\u00f6r\u00e4ldrapenning)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "How many days", "text": "Parents can receive parental benefit for a total of 480 days per child. When the parents have joint custody, the days are divided equally between them, and 90 days are reserved for each parent. Reserved days cannot be transferred to the other parent."}, {"chunk_id": "forsakringskassan-parental-benefit#1", "doc_id": "forsakringskassan-parental-benefit", "title": "Parental benefit (f\u00f6r\u00e4ldrapenning)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "Benefit levels", "text": "Most of the days are paid at sickness benefit level, which is based on your income. The remaining days are paid at a fixed minimum level."}, {"chunk_id": "forsakringskassan-parental-benefit#2", "doc_id": "forsakringskassan-parental-benefit", "title": "Parental benefit (f\u00f6r\u00e4ldrapenning)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "Saving days for later", "text": "Parental benefit can be used until the child turns 12 or finishes the fifth year of school. After the child turns four, a maximum of 96 days can be saved for later use."}, {"chunk_id": "forsakringskassan-parental-benefit#3", "doc_id": "forsakringskassan-parental-benefit", "title": "Parental benefit (f\u00f6r\u00e4ldrapenning)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "How to apply", "text": "You apply to F\u00f6rs\u00e4kringskassan, normally through its e-service with an e-identification. You should also tell your employer about planned parental leave in good time."}, {"chunk_id": "forsakringskassan-sick-pay#0", "doc_id": "forsakringskassan-sick-pay", "title": "Sick pay and sickness benefit for employees", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "The first 14 days", "text": "If you are employed and become ill, you must report sick to your employer. The employer pays sick pay (sjukl\u00f6n) for the first 14 days of the sick period. A deduction (karensavdrag) is made from the sick pay."}, {"chunk_id": "forsakringskassan-sick-pay#1", "doc_id": "forsakringskassan-sick-pay", "title": "Sick pay and sickness benefit for employees", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "Medical certificate", "text": "From the eighth day of the sick period you need a medical certificate (l\u00e4karintyg) that shows how the illness reduces your ability to work."}, {"chunk_id": "forsakringskassan-sick-pay#2", "doc_id": "forsakringskassan-sick-pay", "title": "Sick pay and sickness benefit for employees", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "From day 15", "text": "If you are still ill after 14 days, the employer reports this to F\u00f6rs\u00e4kringskassan, and you can apply for sickness benefit (sjukpenning) from F\u00f6rs\u00e4kringskassan from day 15."}, {"chunk_id": "forsakringskassan-temporary-parental-benefit#0", "doc_id": "forsakringskassan-temporary-parental-benefit", "title": "Temporary parental benefit for caring for a sick child (VAB)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "When it applies", "text": "You can receive temporary parental benefit when you stay home from work to care for a sick child who is under 12 years old. Staying home to care for a sick child is often called \"vabba\"."}, {"chunk_id": "forsakringskassan-temporary-parental-benefit#1", "doc_id": "forsakringskassan-temporary-parental-benefit", "title": "Temporary parental benefit for caring for a sick child (VAB)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "How many days", "text": "Temporary parental benefit can be paid for up to 120 days per child and year."}, {"chunk_id": "forsakringskassan-temporary-parental-benefit#2", "doc_id": "forsakringskassan-temporary-parental-benefit", "title": "Temporary parental benefit for caring for a sick child (VAB)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/", "section": "Reporting and applying", "text": "Tell your employer that you are staying home, and report the absence (VAB) to F\u00f6rs\u00e4kringskassan. You must apply for the benefit no later than 90 days after the first day you stayed home."}, {"chunk_id": "kommun-sfi#0", "doc_id": "kommun-sfi", "title": "Swedish for immigrants (SFI)", "agency": "Your municipality (kommun)", "url": "https://www.skolverket.se/", "section": "What SFI is", "text": "Swedish for immigrants (svenska f\u00f6r invandrare, SFI) is a free basic Swedish language course for adults whose first language is not Swedish. SFI is organised by the municipalities."}, {"chunk_id": "kommun-sfi#1", "doc_id": "kommun-sfi", "title": "Swedish for immigrants (SFI)", "agency": "Your municipality (kommun)", "url": "https://www.skolverket.se/", "section": "Who can study", "text": "To study SFI you generally need to be registered (folkbokf\u00f6rd) in the municipality and lack basic knowledge of Swedish."}, {"chunk_id": "kommun-sfi#2", "doc_id": "kommun-sfi", "title": "Swedish for immigrants (SFI)", "agency": "Your municipality (kommun)", "url": "https://www.skolverket.se/", "section": "How to apply", "text": "You apply to the adult education unit (vuxenutbildning) of the municipality where you are registered, usually through the municipality's website."}, {"chunk_id": "skatteverket-id-card#0", "doc_id": "skatteverket-id-card", "title": "Applying for an identity card from Skatteverket", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Who can apply", "text": "Skatteverket issues identity cards to people who are registered in the Swedish population register (folkbokf\u00f6rda) and have a personal identity number."}, {"chunk_id": "skatteverket-id-card#1", "doc_id": "skatteverket-id-card", "title": "Applying for an identity card from Skatteverket", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "How to apply", "text": "1. Pay the application fee before your visit. 2. Visit one of Skatteverket's service offices in person. You are photographed at the office. 3. Prove your identity with a valid identity document. If you do not have one, a person who knows you and holds a valid Swedish identity document can vouch for your identity (intygsgivare)."}, {"chunk_id": "skatteverket-id-card#2", "doc_id": "skatteverket-id-card", "title": "Applying for an identity card from Skatteverket", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Collecting the card", "text": "The card is collected in person at the service office you choose when you apply."}, {"chunk_id": "skatteverket-moving#0", "doc_id": "skatteverket-moving", "title": "Reporting a move (flyttanm\u00e4lan)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Who must report", "text": "Everyone who is registered in the Swedish population register (folkbokf\u00f6ring) and moves to a new permanent address in Sweden must report the move to Skatteverket. Your registered address affects, among other things, which municipality and region you belong to, where you pay municipal tax, and where you receive healthcare and school placements."}, {"chunk_id": "skatteverket-moving#1", "doc_id": "skatteverket-moving", "title": "Reporting a move (flyttanm\u00e4lan)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Deadline", "text": "You must report the move to Skatteverket within one week after you have moved."}, {"chunk_id": "skatteverket-moving#2", "doc_id": "skatteverket-moving", "title": "Reporting a move (flyttanm\u00e4lan)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "How to report", "text": "The easiest way is the e-service for reporting a move on Skatteverket's website, where you log in with an e-identification such as BankID or Freja eID. You can also report on a paper form (flyttanm\u00e4lan) and send it by post. Children who move with their guardians are included when the guardians report the move."}, {"chunk_id": "skatteverket-moving#3", "doc_id": "skatteverket-moving", "title": "Reporting a move (flyttanm\u00e4lan)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Mail forwarding is a separate service", "text": "Reporting a move to Skatteverket updates your registered address. Forwarding of letters and parcels (efters\u00e4ndning) is a separate paid service that is not handled by Skatteverket."}, {"chunk_id": "skatteverket-personnummer#0", "doc_id": "skatteverket-personnummer", "title": "Personal identity number and coordination number", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Personal identity number", "text": "A personal identity number (personnummer) is assigned by Skatteverket to everyone who is registered in the Swedish population register (folkbokf\u00f6rd). Children born in Sweden get one at birth. A person who moves to Sweden is normally registered if they are expected to live in Sweden for at least one year."}, {"chunk_id": "skatteverket-personnummer#1", "doc_id": "skatteverket-personnummer", "title": "Personal identity number and coordination number", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Format", "text": "The number has ten digits: the date of birth as YYMMDD, followed by a hyphen and four digits (YYMMDD-XXXX). The last digit is a check digit calculated with the Luhn algorithm. When a person turns 100 years old, the hyphen is replaced by a plus sign. In many digital systems the twelve-digit form YYYYMMDD-XXXX is used."}, {"chunk_id": "skatteverket-personnummer#2", "doc_id": "skatteverket-personnummer", "title": "Personal identity number and coordination number", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Coordination number", "text": "A coordination number (samordningsnummer) is an identity number for people who are not, or have not been, registered in the population register, for example people who work in Sweden for a short period. It has the same structure as a personal identity number, but 60 is added to the day of birth, so a person born on the 5th of a month gets 65 as the day digits."}, {"chunk_id": "skatteverket-personnummer#3", "doc_id": "skatteverket-personnummer", "title": "Personal identity number and coordination number", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Protecting the number", "text": "A personal identity number is not secret in Sweden, but you should be careful about sharing it together with other personal data, because it can be misused for identity fraud."}, {"chunk_id": "skatteverket-tax-return#0", "doc_id": "skatteverket-tax-return", "title": "Filing the annual income tax return (inkomstdeklaration)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Who files", "text": "Individuals who had taxable income in Sweden during the previous calendar year normally receive an income tax return from Skatteverket in the spring, pre-filled with information from employers, banks and authorities."}, {"chunk_id": "skatteverket-tax-return#1", "doc_id": "skatteverket-tax-return", "title": "Filing the annual income tax return (inkomstdeklaration)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Deadline", "text": "The income tax return must be submitted no later than 2 May. If 2 May falls on a Saturday, Sunday or public holiday, the deadline moves to the next working day. If you need more time, you can apply for a deferral (anst\u00e5nd) before the deadline."}, {"chunk_id": "skatteverket-tax-return#2", "doc_id": "skatteverket-tax-return", "title": "Filing the annual income tax return (inkomstdeklaration)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "How to file", "text": "You check the pre-filled information, correct or add what is missing, and approve the return. This can be done in Skatteverket's e-service or app with an e-identification, or on paper."}, {"chunk_id": "skatteverket-tax-return#3", "doc_id": "skatteverket-tax-return", "title": "Filing the annual income tax return (inkomstdeklaration)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/", "section": "Late filing", "text": "If you file late, Skatteverket can charge a late filing fee (f\u00f6rseningsavgift)."}, {"chunk_id": "transportstyrelsen-driving-licence#0", "doc_id": "transportstyrelsen-driving-licence", "title": "Using a foreign driving licence in Sweden", "agency": "Transportstyrelsen (Swedish Transport Agency)", "url": "https://www.transportstyrelsen.se/", "section": "Licences from the EU or EEA", "text": "A valid driving licence issued in an EU or EEA country is valid in Sweden. You do not need to exchange it for a Swedish licence while it is valid."}, {"chunk_id": "transportstyrelsen-driving-licence#1", "doc_id": "transportstyrelsen-driving-licence", "title": "Using a foreign driving licence in Sweden", "agency": "Transportstyrelsen (Swedish Transport Agency)", "url": "https://www.transportstyrelsen.se/", "section": "Licences from other countries", "text": "A valid licence from a country outside the EU/EEA can be used in Sweden for a limited time. Once you are registered in the Swedish population register, it is valid for one year from the date of registration. After that you need a Swedish driving licence. Licences from some countries can be exchanged for a Swedish licence; for others you must take the Swedish driving test."}, {"chunk_id": "transportstyrelsen-driving-licence#2", "doc_id": "transportstyrelsen-driving-licence", "title": "Using a foreign driving licence in Sweden", "agency": "Transportstyrelsen (Swedish Transport Agency)", "url": "https://www.transportstyrelsen.se/", "section": "Applying", "text": "Applications to exchange a licence are made to Transportstyrelsen."}], "tables": {"stopwords": ["a", "about", "above", "after", "again", "against", "all", "alla", "also", "am", "an", "and", "andra", "any", "anyone", "anything", "are", "as", "at", "att", "av", "bara", "be", "because", "been", "before", "being", "below", "between", "blir", "both", "but", "by", "can", "could", "de", "dem", "den", "denna", "dessa", "det", "detta", "did", "dig", "din", "dina", "ditt", "do", "does", "doing", "down", "du", "during", "d\u00e4r", "d\u00e5", "each", "efter", "eller", "en", "er", "era", "ert", "etc", "ett", "few", "finns", "for", "from", "fr\u00e5n", "further", "f\u00e5", "f\u00e5r", "f\u00f6r", "get", "gets", "gjort", "got", "g\u00e5r", "g\u00f6r", "g\u00f6ra", "ha", "had", "hade", "han", "har", "has", "have", "having", "he", "her", "here", "hers", "herself", "him", "himself", "his", "hon", "hos", "how", "hur", "h\u00e4r", "i", "if", "in", "inte", "into", "is", "it", "its", "itself", "jag", "just", "kan", "kommer", "man", "may", "me", "med", "men", "mer", "mig", "min", "mina", "mitt", "more", "most", "mot", "must", "my", "mycket", "myself", "m\u00e5nga", "need", "needs", "no", "nor", "not", "now", "nu", "n\u00e4r", "och", "ocks\u00e5", "of", "off", "om", "on", "once", "one", "only", "or", "other", "our", "ours", "ourselves", "out", "over", "own", "per", "p\u00e5", "same", "sedan", "she", "should", "sig", "sin", "ska", "skulle", "so", "som", "some", "someone", "something", "such", "sverige", "s\u00e4ger", "s\u00e5", "than", "that", "the", "their", "theirs", "them", "themselves", "then", "there", "these", "they", "this", "those", "through", "till", "to", "too", "tv\u00e5", "under", "until", "up", "upp", "use", "used", "using", "ut", "utan", "vad", "var", "vara", "very", "vi", "via", "vid", "vilka", "vilken", "vilket", "vill", "v\u00e5r", "v\u00e5ra", "v\u00e5rt", "was", "we", "were", "what", "when", "where", "which", "while", "who", "whom", "why", "will", "with", "you", "your", "yours", "yourself", "yourselves", "\u00e4n", "\u00e4r", "\u00e4ven", "\u00e5r", "\u00f6ver"], "suffixes": ["arnas", "ernas", "ornas", "arna", "erna", "orna", "ande", "ende", "ings", "ing", "ed", "es", "en", "et", "er", "ar", "or", "na", "s", "e"], "glossary": {"flytt": "move moving", "flytta": "move", "flyttat": "moved", "flyttanm\u00e4lan": "move report", "anm\u00e4la": "report", "anm\u00e4lan": "report", "tid": "time deadline", "l\u00e5ng": "long", "senast": "deadline later", "dag": "day", "dagar": "days", "vecka": "week", "veckor": "weeks", "m\u00e5nad": "month", "m\u00e5nader": "months", "barn": "child", "barnet": "child", "f\u00f6r\u00e4ldrar": "parents", "f\u00f6r\u00e4lder": "parent", "f\u00f6r\u00e4ldrapenning": "parental benefit", "f\u00f6r\u00e4ldraledig": "parental leave", "sjuk": "sick ill", "sjukpenning": "sickness benefit", "sjukl\u00f6n": "sick pay", "l\u00e4karintyg": "medical certificate", "skatt": "tax", "deklaration": "tax return", "inkomstdeklaration": "income tax return", "deklarera": "file tax return", "ans\u00f6ka": "apply", "ans\u00f6ker": "apply", "ans\u00f6kan": "application apply", "kostar": "cost free", "kostnad": "cost", "gratis": "free", "legitimation": "identity card", "id-kort": "identity card", "k\u00f6rkort": "driving licence", "studier": "studies", "studera": "study", "l\u00e5n": "loan", "bidrag": "grant", "arbetsl\u00f6s": "unemployed", "jobb": "job", "arbete": "work job", "arbetsgivare": "employer", "betala": "pay", "betalar": "pays", "svenska": "swedish", "kurs": "course", "personnummer": "personal identity number", "samordningsnummer": "coordination number", "vabba": "vab sick child", "hur": "", "m\u00e5nga": "many", "cost": "fee free", "costs": "fee free", "price": "fee cost", "charge": "fee", "charged": "fee"}, "months": [["january", 1], ["february", 2], ["march", 3], ["april", 4], ["may", 5], ["june", 6], ["july", 7], ["august", 8], ["september", 9], ["october", 10], ["november", 11], ["december", 12], ["jan", 1], ["feb", 2], ["mar", 3], ["apr", 4], ["jun", 6], ["jul", 7], ["aug", 8], ["sep", 9], ["oct", 10], ["nov", 11], ["dec", 12], ["januari", 1], ["februari", 2], ["mars", 3], ["maj", 5], ["juni", 6], ["juli", 7], ["augusti", 8], ["oktober", 10]], "words": [["one", 1], ["two", 2], ["three", 3], ["four", 4], ["five", 5], ["six", 6], ["seven", 7], ["eight", 8], ["nine", 9], ["ten", 10], ["eleven", 11], ["twelve", 12], ["fourteen", 14], ["thirty", 30], ["ninety", 90], ["en", 1], ["ett", 1], ["tv\u00e5", 2], ["tre", 3], ["fyra", 4], ["fem", 5], ["sex", 6], ["sju", 7], ["\u00e5tta", 8], ["nio", 9], ["tio", 10]], "injection_patterns": ["ignore\\s+(all\\s+|any\\s+)?(the\\s+)?(previous|prior|above|earlier)\\s+(instructions|prompts?|rules)", "disregard\\s+(all\\s+|the\\s+)?(previous|prior|above|system)", "\\b(system|developer)\\s+prompt\\b", "\\byou\\s+are\\s+now\\b", "\\bact\\s+as\\s+(an?\\s+)?(unrestricted|jailbroken|dan)\\b", "\\bdo\\s+not\\s+(tell|inform|mention\\s+to)\\s+the\\s+user\\b", "\\b(reveal|print|output)\\s+(your|the)\\s+(instructions|system prompt|api key)", "\u003c\\|?(im_start|im_end|system|assistant)\\|?>", "^\\s*(###\\s*)?(system|assistant)\\s*:", "\\bnew\\s+instructions?\\s*:", "ignorera\\s+(alla\\s+)?(tidigare|f\u00f6reg\u00e5ende)\\s+instruktioner", "\\bsend\\s+(the\\s+)?(user'?s?\\s+)?(data|personnummer|password|credentials)\\s+to\\b"]}, "examples": ["I moved on 2026-03-10. What is the last day to report the move?", "How many days of parental benefit do parents get per child?", "Does SFI cost anything?", "What is the last day to submit the income tax return in 2026?", "Who pays sick pay during the first 14 days of illness?", "Hur l\u00e5ng tid har jag p\u00e5 mig att g\u00f6ra en flyttanm\u00e4lan?", "My personnummer is 19121212-1212. How do I apply for an identity card?", "How do I renew a US passport?"], "eval": {"n": 34, "answerable": 26, "unanswerable": 8, "retrieval_recall@5": 1.0, "retrieval_mrr": 1.0, "answer_accuracy": 0.846, "abstain_precision": 1.0, "abstain_recall": 0.75, "abstain_f1": 0.857, "faithfulness": 1.0, "citation_precision": 0.886, "tool_date_accuracy": 1.0, "latency_ms_p50": 0.8, "latency_ms_p95": 1.1, "mode": "extractive"}, "docs": {"arbetsformedlingen-job-seeker": {"title": "Registering as a job seeker and unemployment insurance", "agency": "Arbetsf\u00f6rmedlingen (Swedish Public Employment Service)", "url": "https://arbetsformedlingen.se/"}, "csn-student-aid": {"title": "Student aid (studiemedel)", "agency": "CSN (Swedish Board of Student Finance)", "url": "https://www.csn.se/"}, "e-identification": {"title": "E-identification (e-legitimation) for public e-services", "agency": "DIGG (Agency for Digital Government)", "url": "https://www.digg.se/"}, "forsakringskassan-parental-benefit": {"title": "Parental benefit (f\u00f6r\u00e4ldrapenning)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/"}, "forsakringskassan-sick-pay": {"title": "Sick pay and sickness benefit for employees", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/"}, "forsakringskassan-temporary-parental-benefit": {"title": "Temporary parental benefit for caring for a sick child (VAB)", "agency": "F\u00f6rs\u00e4kringskassan (Swedish Social Insurance Agency)", "url": "https://www.forsakringskassan.se/"}, "kommun-sfi": {"title": "Swedish for immigrants (SFI)", "agency": "Your municipality (kommun)", "url": "https://www.skolverket.se/"}, "skatteverket-id-card": {"title": "Applying for an identity card from Skatteverket", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/"}, "skatteverket-moving": {"title": "Reporting a move (flyttanm\u00e4lan)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/"}, "skatteverket-personnummer": {"title": "Personal identity number and coordination number", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/"}, "skatteverket-tax-return": {"title": "Filing the annual income tax return (inkomstdeklaration)", "agency": "Skatteverket (Swedish Tax Agency)", "url": "https://www.skatteverket.se/"}, "transportstyrelsen-driving-licence": {"title": "Using a foreign driving licence in Sweden", "agency": "Transportstyrelsen (Swedish Transport Agency)", "url": "https://www.transportstyrelsen.se/"}}}</script>
+<script>
+/* CiviCite core — a JavaScript port of the Python reference (civicite: text.py, index/search.py,
+   agent/core.py extractive mode, agent/tools.py, verify/citations.py, guard/pii.py, guard/injection.py).
+   Python semantics are emulated where JavaScript differs: Unicode \w \s \d \b, str.split/strip, set and
+   dict ordering, round()/format() on binary floats, and civil-date arithmetic. */
+const CCCore = (() => {
+  'use strict';
+  let TB = null;
+
+  // ------------------------------------------------------------------ Python-compatible helpers
+  const PY_WS = '\\t\\n\\v\\f\\r\\x1c-\\x20\\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000';
+  const WS_CLASS = '[' + PY_WS + ']';
+  const W = '[\\p{L}\\p{N}_]';
+  const B = '(?:(?<=' + W + ')(?!' + W + ')|(?<!' + W + ')(?=' + W + '))';
+  // Python-style pattern -> JS source: \b \s \w \d become Unicode-aware, '.' never matches '\n'.
+  function src(p, dotall = false) {
+    let out = '', inClass = false;
+    for (let k = 0; k < p.length; k++) {
+      const c = p[k];
+      if (c === '\\') {
+        const n = p[++k];
+        if (n === 'b' && !inClass) out += B;
+        else if (n === 's') out += inClass ? PY_WS : WS_CLASS;
+        else if (n === 'w') out += inClass ? '\\p{L}\\p{N}_' : W;
+        else if (n === 'd') out += '\\p{Nd}';
+        else if (n === 'D') out += '\\P{Nd}';
+        else out += '\\' + n;
+        continue;
+      }
+      if (c === '[' && !inClass) { inClass = true; out += c; if (p[k + 1] === '^') { out += '^'; k++; } continue; }
+      if (c === ']' && inClass) { inClass = false; out += c; continue; }
+      if (c === '.' && !inClass && !dotall) { out += '[^\\n]'; continue; }
+      out += c;
+    }
+    return out;
+  }
+  const rx = (p, flags = '') => new RegExp(src(p, flags.includes('s')), flags + 'u');
+  // Case-insensitive patterns are matched against lower-cased text (avoids slow case-folding of \p classes).
+  const ci = (p, flags = '') => { const r = rx(p, flags); return { test: (s) => { r.lastIndex = 0; return r.test(s.toLowerCase()); }, exec: (s) => { r.lastIndex = 0; return r.exec(s.toLowerCase()); } }; };
+  const STRIP = new RegExp('^' + WS_CLASS + '+|' + WS_CLASS + '+$', 'gu');
+  const strip = (s) => s.replace(STRIP, '');
+  const RSTRIP = new RegExp(WS_CLASS + '+$', 'u');
+  const rstrip = (s) => s.replace(RSTRIP, '');
+  const WS_RUN = new RegExp(WS_CLASS + '+', 'gu');
+  const isDigits = (s) => /^\p{Nd}+$/u.test(s);
+  const cmpStr = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+  // round(x, n) and format(x, '.nf') exactly as Python does for binary doubles (round-half-even on the exact value)
+  function pyRoundStr(x, n) {
+    if (!Number.isFinite(x)) return String(x);
+    const neg = x < 0 || Object.is(x, -0); x = Math.abs(x);
+    const buf = new DataView(new ArrayBuffer(8)); buf.setFloat64(0, x);
+    const hi = buf.getUint32(0), lo = buf.getUint32(4);
+    const exp = (hi >>> 20) & 0x7ff;
+    let mant = (BigInt(hi & 0xfffff) << 32n) | BigInt(lo);
+    let e2;
+    if (exp === 0) e2 = -1074; else { mant |= 1n << 52n; e2 = exp - 1075; }
+    // value = mant * 2^e2 ; scaled = value * 10^n
+    let num = mant * 10n ** BigInt(n), den = 1n;
+    if (e2 >= 0) num <<= BigInt(e2); else den <<= BigInt(-e2);
+    let q = num / den; const r = num % den;
+    if (r * 2n > den || (r * 2n === den && q % 2n === 1n)) q += 1n;
+    let s = q.toString().padStart(n + 1, '0');
+    s = n ? s.slice(0, -n) + '.' + s.slice(-n) : s;
+    return (neg && q !== 0n ? '-' : '') + s;
+  }
+  const pyRound = (x, n) => Number(pyRoundStr(x, n));
+  function floatRepr(x) {
+    if (x === 0) return Object.is(x, -0) ? '-0.0' : '0.0';
+    const [mant, es] = x.toExponential().split('e');
+    const exp = parseInt(es, 10), sign = mant[0] === '-' ? '-' : '';
+    const digits = mant.replace('-', '').replace('.', ''), n = digits.length, decpt = exp + 1;
+    if (exp >= -4 && exp <= 15) {
+      if (decpt <= 0) return sign + '0.' + '0'.repeat(-decpt) + digits;
+      if (decpt >= n) return sign + digits + '0'.repeat(decpt - n) + '.0';
+      return sign + digits.slice(0, decpt) + '.' + digits.slice(decpt);
+    }
+    const ae = Math.abs(exp);
+    return sign + digits[0] + (n > 1 ? '.' + digits.slice(1) : '') + 'e' + (exp < 0 ? '-' : '+') + (ae < 10 ? '0' : '') + ae;
+  }
+  const pyReprStr = (s) => { const q = s.includes("'") && !s.includes('"') ? '"' : "'"; return q + s.replace(/\\/g, '\\\\').split(q).join('\\' + q).replace(/\n/g, '\\n') + q; };
+  function pyStr(v) {                              // str(v) for tool-result values
+    if (Array.isArray(v)) return '[' + v.map((x) => (typeof x === 'string' ? pyReprStr(x) : pyStr(x))).join(', ') + ']';
+    if (v === true) return 'True'; if (v === false) return 'False'; if (v === null) return 'None';
+    return String(v);
+  }
+
+  // ------------------------------------------------------------------ text.py
+  const TOKEN = new RegExp(src('\\d+(?:[.,:/-]\\d+)*|[a-zåäöéüæø]+'), 'gu');
+  const SENT = new RegExp(src('(?<=[.!?])\\s+(?=[A-ZÅÄÖ0-9"\'(\\[])|\\n{2,}'), 'u');
+  const NUM = new RegExp(src('\\d+(?:[.,]\\d+)?'), 'gu');
+  let STOP = null, SUFFIXES = null, GLOSSARY = null;
+  function stem(tok) {
+    if (isDigits(tok) || tok.length <= 4) return tok;
+    if ((tok.endsWith('ies') || tok.endsWith('ied')) && tok.length > 5) return tok.slice(0, -3) + 'y';
+    for (const suf of SUFFIXES) {
+      if (tok.endsWith(suf) && tok.length - suf.length >= 4) { tok = tok.slice(0, -suf.length); break; }
+    }
+    if (tok.endsWith('e') && tok.length > 5) tok = tok.slice(0, -1);
+    return tok;
+  }
+  const tokenize = (text) => text.toLowerCase().match(TOKEN) || [];
+  const contentTerms = (text) => tokenize(text).filter((t) => !STOP.has(t) && (t.length > 1 || isDigits(t))).map(stem);
+  function sentences(text) {
+    const out = [];
+    for (const p of text.split(SENT)) {
+      if (!p || !strip(p)) continue;
+      const q = strip(p).replace(WS_RUN, ' ');
+      if (q) out.push(q);
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------------ index/search.py (BM25; no dense model in the browser)
+  const setOf = (a) => new Set(a);
+  const intersects = (a, b) => { for (const x of a) if (b.has(x)) return true; return false; };
+  class Index {
+    constructor(chunks) {
+      this.chunks = chunks;
+      this.terms = chunks.map((c) => contentTerms(header(c) + '\n' + c.text));
+      this.termSets = this.terms.map(setOf);
+      const k1 = 1.4, b = 0.75;
+      this.k1 = k1; this.b = b;
+      this.tf = this.terms.map((t) => { const m = new Map(); for (const w of t) m.set(w, (m.get(w) || 0) + 1); return m; });
+      this.len = this.terms.map((t) => t.length);
+      this.avgdl = this.len.length ? this.len.reduce((a, x) => a + x, 0) / this.len.length : 0;
+      const df = new Map();
+      for (const t of this.terms) for (const w of new Set(t)) df.set(w, (df.get(w) || 0) + 1);
+      const n = this.terms.length;
+      this.idf = new Map();
+      for (const [w, c] of df) this.idf.set(w, Math.log(1 + (n - c + 0.5) / (c + 0.5)));
+    }
+    bm25(qTerms) {
+      return this.tf.map((tf, i) => {
+        let s = 0;
+        const dl = this.len[i];
+        for (const w of qTerms) {
+          const f = tf.get(w);
+          if (!f) continue;
+          s += (this.idf.get(w) || 0) * f * (this.k1 + 1) / (f + this.k1 * (1 - this.b + this.b * dl / this.avgdl));
+        }
+        return s;
+      });
+    }
+    weightedCoverage(qmap, chunkTerms) {
+      if (!qmap.size) return 0;
+      const n = Math.max(1, this.chunks.length);
+      const maxIdf = Math.log(1 + (n + 0.5) / 0.5);
+      let total = 0, covered = 0;
+      for (const alts of qmap.values()) {
+        const known = [...alts].filter((a) => this.idf.has(a)).map((a) => this.idf.get(a));
+        const w = known.length ? Math.min(...known) : maxIdf;
+        total += w;
+        if (intersects(alts, chunkTerms)) covered += w;
+      }
+      return total ? covered / total : 0;
+    }
+    queryTerms(query) {
+      const out = new Map();
+      for (const tok of tokenize(query)) {
+        const terms = contentTerms(tok);
+        if (!terms.length) continue;
+        const alts = new Set(terms);
+        const gloss = Object.prototype.hasOwnProperty.call(GLOSSARY, tok) ? GLOSSARY[tok] : null;
+        if (gloss) for (const t of contentTerms(gloss)) alts.add(t);
+        if (!out.has(terms[0])) out.set(terms[0], new Set());
+        for (const a of alts) out.get(terms[0]).add(a);
+      }
+      return out;
+    }
+    search(query, k = 5, rrfK = 60) {
+      const qmap = this.queryTerms(query);
+      const all = new Set(); for (const alts of qmap.values()) for (const t of alts) all.add(t);
+      const q = [...all].sort(cmpStr);
+      if (!this.chunks.length) return [];
+      const bm = this.bm25(q);
+      const ranking = bm.map((s, i) => [s, i]).sort((x, y) => y[0] - x[0] || x[1] - y[1]).map((x) => x[1]);
+      const fused = new Array(this.chunks.length).fill(0);
+      ranking.forEach((i, r) => { fused[i] += 1 / (rrfK + r + 1); });
+      const order = fused.map((s, i) => [s, i]).sort((x, y) => y[0] - x[0] || x[1] - y[1]).map((x) => x[1]);
+      const hits = [];
+      for (const i of order.slice(0, k)) {
+        if (bm[i] <= 0) continue;
+        hits.push({ chunk: this.chunks[i], score: fused[i], bm25: bm[i], coverage: this.weightedCoverage(qmap, this.termSets[i]) });
+      }
+      return hits;
+    }
+  }
+  const header = (c) => (c.section && c.section !== c.title ? `${c.title} > ${c.section}` : c.title);
+  const confidence = (hits) => (hits.length ? Math.max(...hits.slice(0, 3).map((h) => h.coverage)) : 0);
+
+  // ------------------------------------------------------------------ agent/tools.py (Swedish calendar)
+  const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  let MONTHS = null;
+  const dayNum = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / 864e5);
+  function mkDate(y, m, d) {                       // datetime.date(y, m, d) or null when invalid
+    if (!(y >= 1 && y <= 9999 && m >= 1 && m <= 12 && d >= 1)) return null;
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    if (y < 100) dt.setUTCFullYear(y);
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
+    return { y, m, d, n: Math.floor(dt.getTime() / 864e5) };
+  }
+  function fromNum(n) { const dt = new Date(n * 864e5); return { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate(), n }; }
+  const addDays = (dt, k) => fromNum(dt.n + k);
+  const weekday = (dt) => (((dt.n + 3) % 7) + 7) % 7;  // Monday = 0
+  const iso = (dt) => `${String(dt.y).padStart(4, '0')}-${String(dt.m).padStart(2, '0')}-${String(dt.d).padStart(2, '0')}`;
+  function easterSunday(year) {
+    const a = year % 19, b = Math.floor(year / 100), c = year % 100, d = Math.floor(b / 4), e = b % 4;
+    const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+    return mkDate(year, month, day);
+  }
+  const HOLI = new Map();
+  function swedishHolidays(year) {
+    if (HOLI.has(year)) return HOLI.get(year);
+    const easter = easterSunday(year);
+    let mid = null; for (let d = 19; d < 26; d++) { const x = mkDate(year, 6, d); if (weekday(x) === 4) { mid = x; break; } }
+    let saints = null; for (let i = 0; i < 7; i++) { const x = addDays(mkDate(year, 10, 31), i); if (weekday(x) === 5) { saints = x; break; } }
+    const m = new Map([
+      [mkDate(year, 1, 1).n, "New Year's Day (nyårsdagen)"], [mkDate(year, 1, 6).n, 'Epiphany (trettondedag jul)'],
+      [addDays(easter, -2).n, 'Good Friday (långfredagen)'], [easter.n, 'Easter Sunday (påskdagen)'],
+      [addDays(easter, 1).n, 'Easter Monday (annandag påsk)'], [mkDate(year, 5, 1).n, 'May Day (första maj)'],
+      [addDays(easter, 39).n, 'Ascension Day (Kristi himmelsfärdsdag)'], [addDays(easter, 49).n, 'Whit Sunday (pingstdagen)'],
+      [mkDate(year, 6, 6).n, 'National Day (Sveriges nationaldag)'], [mid.n, 'Midsummer Eve (midsommarafton)'],
+      [addDays(mid, 1).n, 'Midsummer Day (midsommardagen)'], [saints.n, "All Saints' Day (alla helgons dag)"],
+      [mkDate(year, 12, 24).n, 'Christmas Eve (julafton)'], [mkDate(year, 12, 25).n, 'Christmas Day (juldagen)'],
+      [mkDate(year, 12, 26).n, 'Boxing Day (annandag jul)'], [mkDate(year, 12, 31).n, "New Year's Eve (nyårsafton)"],
+    ]);
+    HOLI.set(year, m);
+    return m;
+  }
+  const isWorkingDay = (dt) => weekday(dt) < 5 && !swedishHolidays(dt.y).has(dt.n);
+  function nextBusinessDay(day) {
+    let d = typeof day === 'string' ? parseDate(day) : day;
+    const reasons = [];
+    while (!isWorkingDay(d)) {
+      reasons.push(`${iso(d)} is a ${swedishHolidays(d.y).get(d.n) || WEEKDAYS[weekday(d)]}`);
+      d = addDays(d, 1);
+    }
+    return { date: iso(d), weekday: WEEKDAYS[weekday(d)], moved_because: reasons };
+  }
+  function addMonths(dt, n) {
+    let m = dt.m - 1 + n;
+    const y = dt.y + Math.floor(m / 12); m = ((m % 12) + 12) % 12 + 1;
+    const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    return mkDate(y, m, Math.min(dt.d, last));
+  }
+  function calculateDeadline(startDate, amount, unit, roll = false) {
+    const d0 = parseDate(startDate);
+    let u = unit.toLowerCase(); while (u.endsWith('s')) u = u.slice(0, -1);
+    let d;
+    if (['day', 'dag', 'dagar'].includes(u)) d = addDays(d0, amount);
+    else if (['week', 'vecka', 'veckor'].includes(u)) d = addDays(d0, 7 * amount);
+    else if (['month', 'månad', 'månader', 'manad'].includes(u)) d = addMonths(d0, amount);
+    else throw new Error(`unknown unit: ${unit}`);
+    const result = { start: iso(d0), rule: `${amount} ${unit}`, deadline: iso(d), weekday: WEEKDAYS[weekday(d)], moved_because: [] };
+    if (roll) { const nb = nextBusinessDay(d); result.deadline = nb.date; result.weekday = nb.weekday; result.moved_because = nb.moved_because; }
+    return result;
+  }
+  let ISO_RX, DMY_RX, MDY_RX;
+  function findDates(text) {
+    const out = [];
+    const num = (s) => (/^[0-9]+$/.test(s) ? Number(s) : NaN);
+    for (const m of text.matchAll(ISO_RX)) { const dt = mkDate(num(m[1]), num(m[2]), num(m[3])); if (dt) out.push([m.index, dt]); }
+    for (const m of text.matchAll(DMY_RX)) { const mon = MONTHS.get(m[2].toLowerCase()); if (mon) { const dt = mkDate(num(m[3]), mon, num(m[1])); if (dt) out.push([m.index, dt]); } }
+    for (const m of text.matchAll(MDY_RX)) { const mon = MONTHS.get(m[1].toLowerCase()); if (mon) { const dt = mkDate(num(m[3]), mon, num(m[2])); if (dt) out.push([m.index, dt]); } }
+    out.sort((a, b) => a[0] - b[0] || a[1].n - b[1].n);
+    const seen = new Set(), dates = [];
+    for (const [, d] of out) if (!seen.has(d.n)) { seen.add(d.n); dates.push(d); }
+    return dates;
+  }
+  function parseDate(text) { const f = findDates(text); if (!f.length) throw new Error(`no date found in '${text}'`); return f[0]; }
+  function formatDate(d) { if (typeof d === 'string') { const [y, m, dd] = d.split('-').map(Number); d = mkDate(y, m, dd); } return `${WEEKDAYS[weekday(d)]} ${d.d} ${MONTH_NAMES[d.m]} ${d.y}`; }
+
+  // ------------------------------------------------------------------ guard/pii.py
+  const PNR = new RegExp(src('(?<![\\d-])((?:19|20)?\\d{2})(\\d{2})(\\d{2})([-+]?)(\\d{4})(?![\\d-])'), 'gu');
+  const PNR_FULL = new RegExp('^(?:' + src('((?:19|20)?\\d{2})(\\d{2})(\\d{2})([-+]?)(\\d{4})') + ')$', 'u');
+  const EMAIL = new RegExp(src('\\b[\\w.+-]+@[\\w-]+(?:\\.[\\w-]+)+\\b'), 'gu');
+  const PHONE = new RegExp(src('(?<![\\d+])(?:\\+46|0046|0)[\\s-]?7[02369](?:[\\s-]?\\d){7}(?!\\d)|(?<![\\d+])\\+46(?:[\\s-]?\\d){7,10}(?!\\d)'), 'gu');
+  const IBAN = new RegExp(src('\\b[Ss][Ee]\\d{2}(?:\\s?\\d{4}){5}\\b'), 'gu');
+  const CARD = new RegExp(src('(?<!\\d)(?:\\d[ -]?){13,19}(?!\\d)'), 'gu');
+  function luhnOk(digits) {
+    let total = 0;
+    const ds = Array.from(digits).reverse();
+    for (let i = 0; i < ds.length; i++) { let d = Number(ds[i]); if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9; } total += d; }
+    return total % 10 === 0;
+  }
+  function classifyIdentityNumber(text) {
+    const m = PNR_FULL.exec(strip(text));
+    if (!m) return null;
+    const [, yy, mm, dd, , tail] = m;
+    if (!luhnOk(yy.slice(-2) + mm + dd + tail)) return null;
+    const month = Number(mm); let day = Number(dd);
+    if (!(month >= 1 && month <= 12)) return null;
+    let kind = 'personnummer';
+    if (day > 60) { day -= 60; kind = 'samordningsnummer'; }
+    const year = yy.length === 4 ? Number(yy) : 2000;
+    if (!mkDate(year, month, day)) return null;
+    return kind;
+  }
+  function redact(text) {
+    const found = {};
+    const bump = (k) => { found[k] = (found[k] || 0) + 1; };
+    let out = text.replace(PNR, (m0) => { const kind = classifyIdentityNumber(m0); if (!kind) return m0; bump(kind); return `[${kind.toUpperCase()}]`; });
+    out = out.replace(IBAN, () => { bump('iban'); return '[IBAN]'; });
+    out = out.replace(CARD, (m0) => { const digits = m0.replace(/\P{Nd}/gu, ''); if (digits.length >= 13 && digits.length <= 19 && luhnOk(digits)) { bump('card'); return '[CARD]'; } return m0; });
+    out = out.replace(EMAIL, () => { bump('email'); return '[EMAIL]'; });
+    out = out.replace(PHONE, () => { bump('phone'); return '[PHONE]'; });
+    return { text: out, found };
+  }
+
+  // ------------------------------------------------------------------ guard/injection.py
+  let INJ = null;
+  const injectionFindings = (text) => INJ.filter((p) => p.rx.test(text.toLowerCase())).map((p) => p.pattern);
+  const isSuspicious = (text) => injectionFindings(text).length > 0;
+
+  // ------------------------------------------------------------------ verify/citations.py
+  const CITE = new RegExp(src('\\[(\\d+(?:\\s*[,;]\\s*\\d+)*)\\]'), 'gu');
+  const CALC = /\[calc\]/giu;
+  const META = /(could not find|couldn't find|cannot find|can't find|not (?:mentioned|covered|stated) in|no information|please (?:verify|check|contact)|contact (?:the|your)|this is not (?:legal|official)|kunde inte hitta|hittar inte|kontakta|sources?:|källor?:)/iu;
+  const TRAILING = new RegExp(src('([.!?])((?:\\s*\\[(?:\\d+(?:\\s*[,;]\\s*\\d+)*|calc)\\])+)'), 'giu');
+  const SUPPORT_THRESHOLD = 0.5;
+  const normalizeCitationPlacement = (text) => text.replace(TRAILING, (m0, p1, p2) => rstrip(p2) + p1);
+  const citeNumbers = (text) => [...text.matchAll(CITE)].flatMap((m) => m[1].split(/[,;]/)).filter((x) => strip(x)).map((x) => parseInt(strip(x), 10));
+  function humanDate(y, m, d) { const dt = mkDate(y, m, d); return dt ? `${WEEKDAYS[weekday(dt)]} ${d} ${MONTH_NAMES[m]} ${y}` : ''; }
+  function normNumbers(text) {
+    const out = new Set();
+    for (const n0 of text.match(NUM) || []) {
+      const n = n0.replace(/,/g, '.');
+      if (!/^[0-9.]+$/.test(n)) { out.add(n); continue; }
+      out.add(n.includes('.') ? floatRepr(Number(n)) : BigInt(n).toString());
+    }
+    return out;
+  }
+  const listRepr = (xs) => '[' + xs.map(pyReprStr).join(', ') + ']';
+  function verify(answer, sources, toolResults) {
+    let toolText = (toolResults || []).flatMap((r) => Object.values(r).map(pyStr)).join(' ');
+    for (const isoS of toolText.match(/\d{4}-\d{2}-\d{2}/g) || []) {
+      const [y, m, d] = isoS.split('-').map(Number);
+      toolText += ' ' + humanDate(y, m, d);
+    }
+    const toolNums = normNumbers(toolText.split('-').join(' '));
+    const toolTerms = new Set(contentTerms(toolText));
+    const checks = [], invalid = new Set();
+    for (const sent of sentences(normalizeCitationPlacement(answer))) {
+      const cites = citeNumbers(sent);
+      CALC.lastIndex = 0;
+      const hasCalc = /\[calc\]/iu.test(sent);
+      const body = sent.replace(CITE, ' ').replace(CALC, ' ');
+      const terms = new Set(contentTerms(body));
+      const isClaim = terms.size >= 3 && !META.test(body);
+      if (!isClaim) { checks.push({ text: sent, citations: cites, is_claim: false, supported: true, support: 1.0, reason: 'not a factual claim' }); continue; }
+      const valid = cites.filter((c) => Object.prototype.hasOwnProperty.call(sources, c));
+      for (const c of cites) if (!Object.prototype.hasOwnProperty.call(sources, c)) invalid.add(c);
+      if (!valid.length && !hasCalc) { checks.push({ text: sent, citations: cites, is_claim: true, supported: false, support: 0.0, reason: cites.length ? 'no valid citation' : 'uncited claim' }); continue; }
+      const evidence = valid.map((c) => sources[c]).join(' ');
+      const evTerms = new Set(contentTerms(evidence));
+      let support = terms.size ? [...terms].filter((t) => evTerms.has(t)).length / terms.size : 0;
+      const nums = normNumbers(body);
+      const allowed = new Set([...normNumbers(evidence), ...(hasCalc ? toolNums : [])]);
+      const missing = [...nums].filter((n) => !allowed.has(n)).sort(cmpStr);
+      if (hasCalc && !valid.length) {
+        const ok = !missing.length && (toolResults || []).length > 0;
+        checks.push({ text: sent, citations: cites, is_claim: true, supported: ok, support: ok ? 1.0 : 0.0, reason: ok ? 'matches tool result' : `numbers not in tool result: ${listRepr(missing)}` });
+        continue;
+      }
+      if (hasCalc) {
+        const rest = [...terms].filter((t) => !toolTerms.has(t));
+        support = rest.length ? rest.filter((t) => evTerms.has(t)).length / rest.length : 1.0;
+      }
+      const threshold = hasCalc ? 0.3 : SUPPORT_THRESHOLD;
+      const ok = support >= threshold && !missing.length;
+      const reason = ok ? 'supported' : (missing.length ? `numbers not in source: ${listRepr(missing)}` : `low overlap with cited source (${pyRoundStr(support, 2)})`);
+      checks.push({ text: sent, citations: cites, is_claim: true, supported: ok, support: pyRound(support, 3), reason });
+    }
+    const claims = checks.filter((c) => c.is_claim);
+    const v = { sentences: checks, faithfulness: 1.0, citation_coverage: 1.0, invalid_citations: [...invalid].sort((a, b) => a - b) };
+    if (claims.length) {
+      v.faithfulness = pyRound(claims.filter((c) => c.supported).length / claims.length, 3);
+      v.citation_coverage = pyRound(claims.filter((c) => c.citations.length || c.text.toLowerCase().includes('[calc]')).length / claims.length, 3);
+    }
+    v.label = !claims.length ? 'no-claims' : v.faithfulness >= 0.999 ? 'verified' : v.faithfulness >= 0.5 ? 'partially-verified' : 'unverified';
+    v.unsupported = checks.filter((c) => c.is_claim && !c.supported).map((c) => c.text);
+    return v;
+  }
+
+  // ------------------------------------------------------------------ agent/core.py (extractive mode)
+  const ABSTAIN_EN = 'I could not find this in the documents I have.';
+  const ABSTAIN_SV = 'Jag kunde inte hitta detta i de dokument jag har.';
+  let SV_HINT, EN_HINT, DEADLINE_Q, DURATION, FIXED, ROLL, YEAR, CUES, WORDS;
+  function compile() {
+    SV_HINT = ci('\\b(hur|vad|när|vilken|vilka|måste|jag|kan|får|ska|min|mitt|mina)\\b');
+    EN_HINT = ci('\\b(the|what|how|when)\\b');
+    DEADLINE_Q = ci('\\b(deadline|last day|latest|by when|when (?:do|must|should|is)|how long|senast|sista dag|när måste|när ska|frist)\\b');
+    DURATION = ci('\\b(?:within|no later than|inom|senast)\\s+(\\d+|' + [...WORDS.keys()].join('|') + ')\\s+(days?|weeks?|months?|dagar|dag|veckor|vecka|månader|månad)\\b');
+    FIXED = ci('\\b(?:no later than|by|senast(?: den)?)\\s+(\\d{1,2})\\s+(' + [...MONTHS.keys()].join('|') + ')\\b');
+    ROLL = ci('next working day|nästa vardag|närmast följande vardag');
+    YEAR = rx('\\b(20\\d{2})\\b');
+    CUES = [
+      [ci('\\b(how (do|can|should) i|how to|hur (gör|ansöker|anmäler) jag)\\b'), ci('^how\\b|^hur\\b')],
+      [ci('\\b(who|vem|vilka)\\b'), ci('^who\\b|^vem\\b')],
+      [ci('\\b(deadline|last day|latest|how long|by when|senast|sista dag|hur lång tid)\\b'), ci('deadline|when|time|frist|senast')],
+      [ci('\\b(how many|how much|hur många|hur mycket)\\b'), ci('how many|how much|hur många')],
+    ];
+    ISO_RX = new RegExp(src('\\b(\\d{4})-(\\d{1,2})-(\\d{1,2})\\b'), 'gu');
+    DMY_RX = new RegExp(src('\\b(\\d{1,2})(?:st|nd|rd|th|e|:e)?\\s+(?:of\\s+)?([A-Za-zåäö]+)\\.?,?\\s+(\\d{4})\\b'), 'gu');
+    MDY_RX = new RegExp(src('\\b([A-Za-z]+)\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})\\b'), 'gu');
+  }
+  const cueMatch = (q, section) => CUES.some(([qr, sr]) => qr.test(q) && sr.test(section));
+  function cite(sentence, n) {
+    const s = rstrip(sentence);
+    if (s && '.!?'.includes(s[s.length - 1])) return `${s.slice(0, -1)} [${n}]${s[s.length - 1]}`;
+    return `${s} [${n}].`;
+  }
+  const abstainText = (q) => (SV_HINT.test(q) && !EN_HINT.test(q) ? ABSTAIN_SV : ABSTAIN_EN);
+
+  class CiviCite {
+    constructor(index, { k = 5, abstainThreshold = 0.34, minFaithfulness = 0.6, strict = false } = {}) {
+      Object.assign(this, { index, k, abstainThreshold, minFaithfulness, strict });
+    }
+    searchClean(q, k) {
+      const hits = this.index.search(q, k + 3);
+      const blocked = hits.filter((h) => isSuspicious(h.chunk.text)).map((h) => h.chunk.chunk_id);
+      const clean = hits.filter((h) => !blocked.includes(h.chunk.chunk_id));
+      return [clean.slice(0, k), blocked];
+    }
+    register(registry, chunk) {
+      if (!registry.has(chunk.chunk_id)) {
+        registry.set(chunk.chunk_id, { n: registry.size + 1, chunk_id: chunk.chunk_id, title: chunk.title, agency: chunk.agency, url: chunk.url, section: chunk.section, text: chunk.text });
+      }
+      return registry.get(chunk.chunk_id);
+    }
+    ask(question) {
+      const t0 = (typeof performance !== 'undefined' ? performance : Date).now();
+      const red = redact(question);
+      const q = red.text;
+      const [hits, blocked] = this.searchClean(q, this.k);
+      const conf = confidence(hits);
+      const registry = new Map(), toolLog = [];
+      let [answer, abstained] = this.extractive(q, hits, conf, registry, toolLog);
+      answer = normalizeCitationPlacement(answer);
+      const cited = new Set(citeNumbers(answer));
+      const byN = new Map([...registry.values()].map((s) => [s.n, s]));
+      const calcResults = toolLog.filter((c) => (c.tool === 'calculate_deadline' || c.tool === 'next_business_day') && c.result && typeof c.result === 'object').map((c) => c.result);
+      const srcs = {}; for (const [n, s] of byN) srcs[n] = `${s.title}. ${s.section}. ${s.text}`;
+      const ver = verify(answer, srcs, calcResults);
+      if (!abstained && this.strict && !['verified', 'no-claims'].includes(ver.label) && ver.faithfulness < this.minFaithfulness) {
+        answer = abstainText(q) + ' (The draft answer could not be verified against the sources.)'; abstained = true;
+      }
+      const shown = abstained ? [] : [...cited].sort((a, b) => a - b).filter((n) => byN.has(n)).map((n) => byN.get(n));
+      return { question: q, answer, abstained, mode: 'extractive', confidence: pyRound(conf, 3), sources: shown, verification: ver,
+        tool_calls: toolLog, pii_redacted: red.found, blocked_chunks: blocked, error: null,
+        latency_ms: (typeof performance !== 'undefined' ? performance : Date).now() - t0, _hits: hits };
+    }
+    extractive(q, hits, conf, registry, toolLog) {
+      if (!hits.length || conf < this.abstainThreshold) return [abstainText(q) + ' Please contact the relevant agency directly.', true];
+      const planned = this.planDeadline(q, hits, registry, toolLog);
+      if (planned) return [planned, false];
+      const idf = this.index.idf;
+      const qmap = this.index.queryTerms(q);
+      const scored = [];
+      const top = Math.max(...hits.slice(0, 4).map((h) => h.bm25)) || 1.0;
+      hits.slice(0, 4).forEach((h, rank) => {
+        let weight = h.coverage * Math.pow(Math.max(h.bm25, 0) / top, 0.5) * (cueMatch(q, h.chunk.section) ? 1.6 : 1.0);
+        const titleTerms = new Set(contentTerms(h.chunk.title));
+        const sectionTerms = new Set(contentTerms(h.chunk.section));
+        let sectionBonus = 0;
+        for (const alts of qmap.values()) if (intersects(alts, sectionTerms) && !intersects(alts, titleTerms)) sectionBonus += Math.max(...[...alts].map((a) => idf.get(a) || 0));
+        sentences(h.chunk.text).forEach((s, pos) => {
+          const sTerms = new Set(contentTerms(s));
+          let overlap = 0;
+          for (const alts of qmap.values()) {
+            const hit = [...alts].filter((a) => sTerms.has(a));
+            if (hit.length) {
+              weight = intersects(alts, titleTerms) ? 0.5 : 1.0;      // (sic) same variable as the reference
+              overlap += weight * Math.max(...hit.map((a) => idf.get(a) || 0));
+            }
+          }
+          if (overlap > 0) scored.push([(overlap + 0.6 * sectionBonus) * weight, rank, pos, s]);
+        });
+      });
+      if (!scored.length) return [abstainText(q) + ' Please contact the relevant agency directly.', true];
+      const order = scored.map((x, i) => [x, i]).sort((a, b) => b[0][0] - a[0][0] || a[1] - b[1]).map((x) => x[0]);
+      const best = order[0][0];
+      const chosen = order.slice(0, 3).filter((x) => x[0] >= 0.6 * best).sort((a, b) => a[1] - b[1] || a[2] - b[2]);
+      return [chosen.map(([, rank, , s]) => cite(s, this.register(registry, hits[rank].chunk).n)).join(' '), false];
+    }
+    planDeadline(q, hits, registry, toolLog) {
+      if (!DEADLINE_Q.test(q)) return null;
+      const dates = findDates(q);
+      for (const h of hits.slice(0, 3)) {
+        for (const s of sentences(h.chunk.text)) {
+          const m = DURATION.exec(s);
+          if (m && dates.length) {
+            const amount = isDigits(m[1]) ? Number(m[1]) : WORDS.get(m[1].toLowerCase());
+            let unit = m[2].toLowerCase();
+            unit = { dag: 'days', dagar: 'days', vecka: 'weeks', veckor: 'weeks', 'månad': 'months', 'månader': 'months' }[unit] || (unit.endsWith('s') ? unit : unit + 's');
+            const args = { start_date: iso(dates[0]), amount, unit };
+            const res = calculateDeadline(args.start_date, amount, unit);
+            toolLog.push({ tool: 'calculate_deadline', args, result: res });
+            const srcN = this.register(registry, h.chunk).n;
+            return `${cite(s, srcN)} Counting from ${formatDate(dates[0])}, the deadline is ${formatDate(res.deadline)} [calc].`;
+          }
+          const f = FIXED.exec(s);
+          const year = YEAR.exec(q);
+          if (f && year && !dates.length) {
+            const d = mkDate(Number(year[1]), MONTHS.get(f[2].toLowerCase()), Number(f[1]));
+            if (!d) throw new Error('day is out of range for month');
+            const srcN = this.register(registry, h.chunk).n;
+            let text = cite(s, srcN);
+            const roll = sentences(h.chunk.text).some((x) => ROLL.test(x));
+            if (roll) {
+              const res = nextBusinessDay(d);
+              toolLog.push({ tool: 'next_business_day', args: { day: iso(d) }, result: res });
+              if (res.moved_because.length) text += ` In ${d.y}, ${formatDate(d)} is not a working day, so the deadline is ${formatDate(res.date)} [calc].`;
+              else text += ` In ${d.y} that is ${formatDate(d)} [calc].`;
+            }
+            return text;
+          }
+        }
+      }
+      return null;
+    }
+  }
+
+  function init(data) {
+    TB = data.tables;
+    STOP = new Set(TB.stopwords); SUFFIXES = TB.suffixes; GLOSSARY = TB.glossary;
+    MONTHS = new Map(TB.months); WORDS = new Map(TB.words);
+    INJ = TB.injection_patterns.map((p) => ({ pattern: p, rx: new RegExp(src(p), 'mu') }));
+    compile();
+    const index = new Index(data.chunks);
+    return { index, app: new CiviCite(index), strictApp: new CiviCite(index, { strict: true }) };
+  }
+
+  return { init, CiviCite, Index, tokenize, contentTerms, stem, sentences, redact, injectionFindings, verify,
+    calculateDeadline, nextBusinessDay, easterSunday, swedishHolidays, findDates, formatDate, iso, pyRound, pyRoundStr, header };
+})();
+if (typeof module !== 'undefined') module.exports = CCCore;
+</script>
+<script>
+/* CiviCite page UI */
+(() => {
+  'use strict';
+  const DATA = JSON.parse(document.getElementById('cc-data').textContent);
+  const CC = CCCore;
+  const { app } = CC.init(DATA);
+  const PAGES = window.__SITE_MODE__ === 'pages';
+  const $ = (id) => document.getElementById(id);
+  function h(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) n.append(k instanceof Node ? k : String(k));
+    return n;
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  function icon(paths) {
+    const s = document.createElementNS(NS, 'svg');
+    for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) s.setAttribute(k, v);
+    for (const d of paths) { const e = document.createElementNS(NS, 'path'); e.setAttribute('d', d); s.append(e); }
+    return s;
+  }
+  const I = {
+    shield: ['M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z', 'm9 12 2 2 4-4'],
+    warn: ['M12 3 2 21h20L12 3Z', 'M12 10v5', 'M12 18h.01'], lock: ['M6 11h12v10H6z', 'M8 11V8a4 4 0 0 1 8 0v3'],
+    check: ['M20 6 9 17l-5-5'], cross: ['M18 6 6 18', 'M6 6l12 12'], dash: ['M6 12h12'],
+    help: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6', 'M12 17h.01'],
+    home: ['M3 11 12 4l9 7', 'M5 10v10h14V10', 'M10 20v-6h4v6'],
+    receipt: ['M6 3h12v18l-3-2-3 2-3-2-3 2V3Z', 'M9 8h6', 'M9 12h6', 'M9 16h3'],
+    baby: ['M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z', 'M5 21c.5-4 3.3-7 7-7s6.5 3 7 7', 'M10.5 7h.01', 'M13.5 7h.01'],
+    thermo: ['M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0Z', 'M12 9v7'],
+    book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z', 'M4 19a2 2 0 0 1 2-2h13'],
+    id: ['M3 6h18v12H3z', 'M9 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z', 'M6 16c.5-2 1.6-3 3-3s2.5 1 3 3', 'M14 9h4', 'M14 13h4'],
+    briefcase: ['M3 8h18v12H3z', 'M8 8V5h8v3', 'M3 13h18'],
+    cap: ['m2 9 10-5 10 5-10 5L2 9Z', 'M6 11v5c2 2 10 2 12 0v-5', 'M22 9v6'],
+  };
+  window.CiviCite = { ask: (q) => app.ask(q), core: CC };
+  if (PAGES) $('src-link').hidden = false;
+
+  // ---------------------------------------------------------------- topic tiles
+  const TOPICS = [
+    ['home', 'Moving', 'I moved on 2026-03-10. What is the last day to report the move?'],
+    ['receipt', 'Income tax return', 'What is the last day to submit the income tax return in 2026?'],
+    ['baby', 'Parental benefit', 'How many days of parental benefit do parents get per child?'],
+    ['thermo', 'Sick pay', 'Who pays sick pay during the first 14 days of illness?'],
+    ['book', 'Swedish for immigrants', 'Kostar SFI något?'],
+    ['id', 'Identity card', 'My personnummer is 19121212-1212. How do I apply for an identity card?'],
+    ['briefcase', 'Unemployment', 'When should I register with Arbetsförmedlingen if I become unemployed?'],
+    ['cap', 'Student aid', 'Do I have to pay back the CSN grant?'],
+  ];
+  const tiles = $('tiles');
+  TOPICS.forEach(([ic, title, q], i) => {
+    const b = h('button', { class: 'tile', type: 'button', 'aria-pressed': 'false' }, h('span', { class: 'ti' }, icon(I[ic])), h('span', null, h('b', { text: title }), h('span', { class: 'qq', text: q })));
+    b.addEventListener('click', () => {
+      $('q').value = q; grow(); run(q, i);
+      $('result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    });
+    tiles.append(b);
+  });
+
+  // ---------------------------------------------------------------- answer rendering
+  const KIND = { personnummer: ['personnummer', 'personnummer'], samordningsnummer: ['samordningsnummer', 'samordningsnummer'],
+    email: ['e-mail address', 'e-mail addresses'], phone: ['phone number', 'phone numbers'], iban: ['bank account number', 'bank account numbers'], card: ['card number', 'card numbers'] };
+  const agencyShort = (a) => (a || '').replace(/\s*\(.*\)\s*$/, '') || 'Agency';
+  const MARKER = /\[(?:\d+(?:\s*[,;]\s*\d+)*|calc)\]/gi;
+  const clean = (s) => s.replace(/\s*\[(?:\d+(?:\s*[,;]\s*\d+)*|calc)\]/gi, '');
+  function questionNode(q) {
+    const span = h('span', { class: 'q' }, 'You asked ');
+    const b = h('b');
+    for (const part of q.split(/(\[(?:PERSONNUMMER|SAMORDNINGSNUMMER|EMAIL|PHONE|IBAN|CARD)\])/)) {
+      if (/^\[[A-Z]+\]$/.test(part)) b.append(h('span', { class: 'token', text: part.slice(1, -1).toLowerCase() }));
+      else if (part) b.append(part);
+    }
+    span.append(b);
+    return span;
+  }
+  function privacyNote(found) {
+    const items = Object.entries(found).map(([k, n]) => `${n === 1 ? 'your' : n} ${n === 1 ? KIND[k][0] : KIND[k][1]}`);
+    return h('div', { class: 'privacy' }, icon(I.lock), h('span', null, h('b', { text: 'Kept private: ' }), `${items.join(' and ')} ${items.length > 1 || Object.values(found).some((n) => n > 1) ? 'were' : 'was'} removed before searching.`));
+  }
+  function renderAnswer(r) {
+    const used = clean(r.answer);
+    const v = r.verification;
+    const card = h('article', { class: 'card' });
+    const checks = h('ul', { class: 'checks', hidden: true, id: 'checks' });
+    for (const c of v.sentences) {
+      const [ic, cls, note] = !c.is_claim ? [I.dash, 'm', 'Not a factual claim.']
+        : c.supported ? [I.check, 'y', c.reason === 'matches tool result' || /\[calc\]/i.test(c.text) ? 'Dates match the calendar calculation.' : `Matches source ${c.citations.join(', ')}, including all numbers.`]
+          : [I.cross, 'n', c.reason];
+      checks.append(h('li', null, h('span', { class: cls }, icon(ic)), h('span', null, clean(c.text), h('small', { text: note }))));
+    }
+    let badge = null;
+    if (v.label !== 'no-claims') {
+      const [cls, ic, text] = v.label === 'verified' ? ['ok', I.shield, 'Verified against sources'] : v.label === 'partially-verified' ? ['warn', I.warn, 'Partly verified'] : ['bad', I.warn, 'Not verified'];
+      badge = h('button', { class: `badge ${cls}`, type: 'button', 'aria-expanded': 'false', 'aria-controls': 'checks', title: 'Show the check for each sentence' }, icon(ic), text);
+      badge.addEventListener('click', () => { const open = checks.hidden; checks.hidden = !open; badge.setAttribute('aria-expanded', String(open)); });
+    }
+    card.append(h('div', { class: 'card-head' }, questionNode(r.question), badge));
+    const body = h('div', { class: 'body' });
+    if (Object.keys(r.pii_redacted).length) body.append(privacyNote(r.pii_redacted));
+    const p = h('p', { class: 'answer' });
+    let last = 0;
+    const refs = [];
+    for (const m of r.answer.matchAll(MARKER)) {
+      p.append(r.answer.slice(last, m.index).replace(/\s+$/, ''));
+      const inner = m[0].slice(1, -1);
+      if (/^calc$/i.test(inner)) p.append(h('span', { class: 'calc', title: 'Worked out with the Swedish calendar, including weekends and public holidays', text: 'calculated' }));
+      else for (const n of inner.split(/[,;]/).map((x) => parseInt(x, 10))) {
+        const b = h('button', { class: 'ref', type: 'button', 'aria-label': `Show source ${n}`, 'aria-pressed': 'false', 'data-n': n, text: n });
+        b.addEventListener('click', () => select(n));
+        refs.push(b); p.append(b);
+      }
+      last = m.index + m[0].length;
+    }
+    p.append(r.answer.slice(last));
+    body.append(p, checks);
+    const row = h('div', { class: 'srcrow' });
+    const quote = h('div', { class: 'quote' });
+    const buttons = new Map();
+    for (const s of r.sources) {
+      const b = h('button', { class: 'src', type: 'button', 'aria-pressed': 'false' }, h('span', { class: 'num', text: s.n }),
+        h('span', null, h('b', { text: s.title }), h('small', { text: agencyShort(s.agency) + (s.section && s.section !== s.title ? ' · ' + s.section : '') })));
+      b.addEventListener('click', () => select(s.n));
+      buttons.set(s.n, b); row.append(b);
+    }
+    function select(n) {
+      const s = r.sources.find((x) => x.n === n);
+      if (!s) return;
+      for (const [k, b] of buttons) b.setAttribute('aria-pressed', String(k === n));
+      for (const b of refs) b.setAttribute('aria-pressed', String(Number(b.dataset.n) === n));
+      const para = h('div');
+      CC.sentences(s.text).forEach((sent, i) => { if (i) para.append(' '); para.append(used.includes(sent.replace(/[.!?]$/, '')) ? h('mark', { text: sent }) : sent); });
+      let host = '';
+      try { host = new URL(s.url).hostname.replace(/^www\./, ''); } catch (e) { /* no url */ }
+      quote.replaceChildren(para, h('div', { class: 'meta' }, `Source ${s.n}: test text about ${agencyShort(s.agency)}. Highlighted: the part used in the answer.`,
+        host ? [' Official information: ', h('a', { href: s.url, target: '_blank', rel: 'noopener', text: host })] : null));
+    }
+    if (r.sources.length) { body.append(row, quote); select(r.sources[0].n); }
+    card.append(body);
+    return card;
+  }
+  function renderNone(r) {
+    const card = h('article', { class: 'card' });
+    card.append(h('div', { class: 'none' }, h('span', { class: 'ic' }, icon(I.help)),
+      h('div', null, h('h2', { text: 'This is not covered yet' }),
+        h('p', { text: `${r.answer.split('.')[0]}. Rather than guess, it tells you so. Try one of the popular questions below.` }))));
+    if (Object.keys(r.pii_redacted).length) card.append(h('div', { class: 'body' }, privacyNote(r.pii_redacted)));
+    return card;
+  }
+
+  // ---------------------------------------------------------------- run
+  function run(question, tile = -1) {
+    const q = question.trim();
+    [...tiles.children].forEach((b, i) => b.setAttribute('aria-pressed', String(i === tile)));
+    if (!q) { $('result').replaceChildren(); $('q').focus(); return; }
+    const r = app.ask(q);
+    $('result').replaceChildren(r.abstained ? renderNone(r) : renderAnswer(r));
+  }
+  function grow() { const t = $('q'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 150) + 'px'; }
+  $('q').addEventListener('input', grow);
+  $('q').addEventListener('keydown', (ev) => { if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); run($('q').value); } });
+  $('ask-form').addEventListener('submit', (ev) => { ev.preventDefault(); run($('q').value); });
+  $('home').addEventListener('click', (ev) => { ev.preventDefault(); $('q').value = ''; grow(); run(''); });
+
+  $('q').value = TOPICS[0][2]; grow(); run(TOPICS[0][2], 0);
+})();
+</script>
+</body>
+</html>
